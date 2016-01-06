@@ -1,3 +1,4 @@
+// Package columns aligns columnar data to a writer.
 package columns
 
 import (
@@ -13,11 +14,15 @@ const (
 	Right
 )
 
+// A Column of data to output.
 type Column struct {
-	Align    Alignment
+	// Alignment of text within the column.
+	Align Alignment
+	// MinWidth is the minimum width of the column. Space padding will be added.
 	MinWidth int
+	// MaxWidth is the maximum width of the column. The column will be truncated to this value.
 	MaxWidth int
-	// Fit       func(s string, width int) []string
+	// Column data. %v is used to display the value.
 	Column []interface{}
 }
 
@@ -26,10 +31,15 @@ var (
 	newline      = []byte("\n")
 )
 
-func Format(w io.Writer, width int, spacing int, columns []*Column) error {
+// Format columns and write to w.
+//
+// Width is the desired output width. Spacing is the number of spaces separating columns.
+func Format(w io.Writer, width, spacing int, columns []*Column) error {
 	sp := strings.Repeat(" ", spacing)
 	// Compute widths
-	for _, c := range columns {
+	sum := 0
+	widths := make([]int, len(columns))
+	for ci, c := range columns {
 		w := c.MinWidth
 		for _, r := range c.Column {
 			l := len(fmt.Sprintf("%v", r))
@@ -40,16 +50,38 @@ func Format(w io.Writer, width int, spacing int, columns []*Column) error {
 				w = l
 			}
 		}
-		c.MinWidth = w
+		sum += w + spacing
+		widths[ci] = w
+	}
+	sum -= spacing
+
+	for sum > width {
+		widest := -1
+		// Find widest column...
+		for ci, c := range columns {
+			if widths[ci] == c.MinWidth {
+				continue
+			}
+			if widest == -1 || widths[ci] > widths[widest] {
+				widest = ci
+			}
+		}
+		if widest == -1 {
+			break
+		}
+		// ...and narrow it
+		widths[widest]--
+		sum--
 	}
 
 	for ri := 0; ri < len(columns[0].Column); ri++ {
 		row := []string{}
-		for _, c := range columns {
+		for ci, c := range columns {
 			f := "%" + alignmentMap[c.Align] + "*v"
-			s := fmt.Sprintf(f, c.MinWidth, c.Column[ri])
-			if c.MaxWidth > 0 && len(s) > c.MaxWidth {
-				s = s[:c.MaxWidth]
+			w := widths[ci]
+			s := fmt.Sprintf(f, w, c.Column[ri])
+			if len(s) > w {
+				s = s[:w]
 			}
 			row = append(row, s)
 		}

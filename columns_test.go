@@ -24,7 +24,7 @@ func TestFormatAlignLeft(t *testing.T) {
 		{Align: Left, Column: []interface{}{123, 2}},
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, "1   123\n20  2  \n", w.String())
+	assert.Equal(t, "1   123\n20  2\n", w.String())
 }
 
 func TestFormatMinWidth(t *testing.T) {
@@ -34,7 +34,7 @@ func TestFormatMinWidth(t *testing.T) {
 		{Column: []interface{}{123, 2}},
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, "1      123\n2      2  \n", w.String())
+	assert.Equal(t, "1      123\n2      2\n", w.String())
 }
 
 func TestFormatWidth(t *testing.T) {
@@ -44,5 +44,5 @@ func TestFormatWidth(t *testing.T) {
 		{Column: []interface{}{123, 2}},
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, "1 12\n2 2 \n", w.String())
+	assert.Equal(t, "1 12\n2 2\n", w.String())
 }

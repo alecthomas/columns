@@ -80,6 +80,9 @@ func Format(w io.Writer, width, spacing int, columns []*Column) error {
 			f := "%" + alignmentMap[c.Align] + "*v"
 			w := widths[ci]
 			s := fmt.Sprintf(f, w, c.Column[ri])
+			if c.Align == Left && ci == len(columns)-1 {
+				s = fmt.Sprintf("%v", c.Column[ri])
+			}
 			if len(s) > w {
 				s = s[:w]
 			}
